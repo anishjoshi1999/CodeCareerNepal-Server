@@ -43,7 +43,7 @@ async function scrapeDeerhold() {
 
     return {
       companyName: "Deerhold",
-      jobListings: jobsData,
+      totalJobs: jobsData,
     };
   } catch (error) {
     console.error("Error:", error);

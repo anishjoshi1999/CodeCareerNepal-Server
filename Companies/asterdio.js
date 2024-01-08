@@ -38,7 +38,7 @@ async function scrapeAsterdio() {
 
     return {
       companyName: "Asterdio",
-      jobListings: jobsData,
+      totalJobs: jobsData,
     };
   } catch (error) {
     console.error("Error:", error);
