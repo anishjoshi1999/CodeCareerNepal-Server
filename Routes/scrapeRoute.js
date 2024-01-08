@@ -5,42 +5,50 @@ const ScrapeState = require("../Models/scrapeState");
 
 // Import scraping functions for different companies
 const scrapingFunctions = [
-  { name: "Cotiviti", scrape: require("../Companies/cotiviti").scrapeCotiviti },
+  // { name: "Cotiviti", scrape: require("../Companies/cotiviti").scrapeCotiviti },
+  // {
+  //   name: "FuseMachine",
+  //   scrape: require("../Companies/fusemachine").scrapeFuseMachine,
+  // },
+  // {
+  //   name: "LeapFrog",
+  //   scrape: require("../Companies/leapfrog").scrapeLeapFrog,
+  // },
+  // {
+  //   name: "LIS Nepal",
+  //   scrape: require("../Companies/lisnepal").scrapeLISNepal,
+  // },
+  // {
+  //   name: "SoftBenz",
+  //   scrape: require("../Companies/softbenz").scrapeSoftBenz,
+  // },
+  // {
+  //   name: "Versik",
+  //   scrape: require("../Companies/verisk").scrapeVerisk,
+  // },
+  // {
+  //   name: "Eb Pearls",
+  //   scrape: require("../Companies/ebperl").scrapeEbPearls,
+  // },
+  // {
+  //   name: "LogPoint Nepal",
+  //   scrape: require("../Companies/logpoint").scrapeLogPoint,
+  // },
+  // {
+  //   name: "Info Developers",
+  //   scrape: require("../Companies/infodev").scrapeInfoDev,
+  // },
+  // {
+  //   name: "Ekbana",
+  //   scrape: require("../Companies/ekbana").scrapeEkbana,
+  // },
   {
-    name: "FuseMachine",
-    scrape: require("../Companies/fusemachine").scrapeFuseMachine,
+    name: "Deerhold",
+    scrape: require("../Companies/deerhold").scrapeDeerhold,
   },
   {
-    name: "LeapFrog",
-    scrape: require("../Companies/leapfrog").scrapeLeapFrog,
-  },
-  {
-    name: "LIS Nepal",
-    scrape: require("../Companies/lisnepal").scrapeLISNepal,
-  },
-  {
-    name: "SoftBenz",
-    scrape: require("../Companies/softbenz").scrapeSoftBenz,
-  },
-  {
-    name: "Versik",
-    scrape: require("../Companies/verisk").scrapeVerisk,
-  },
-  {
-    name: "Eb Pearls",
-    scrape: require("../Companies/ebperl").scrapeEbPearls,
-  },
-  {
-    name: "LogPoint Nepal",
-    scrape: require("../Companies/logpoint").scrapeLogPoint,
-  },
-  {
-    name: "Info Developers",
-    scrape: require("../Companies/infodev").scrapeInfoDev,
-  },
-  {
-    name: "Ekbana",
-    scrape: require("../Companies/ekbana").scrapeEkbana,
+    name: "Asterdio",
+    scrape: require("../Companies/asterdio").scrapeAsterdio,
   },
   // {
   //   name: "UBA Solutions",
