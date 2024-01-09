@@ -38,6 +38,47 @@ router.get("/intern", async (req, res) => {
       .json({ error: "An error occurred while fetching intern jobs." });
   }
 });
+//Search
+router.get("/search", async (req, res) => {
+  const { type, query } = req.query;
+
+  if (!type || !query) {
+    return res.status(400).json({
+      error: "Invalid parameters. Please provide 'type' and 'query'.",
+    });
+  }
+
+  try {
+    let searchResults;
+
+    if (type === "company") {
+      // Search for companies
+      searchResults = await Company.find({
+        companyName: { $regex: new RegExp(query, "i") },
+      });
+    } else if (type === "job") {
+      // Search for jobs
+      searchResults = await Company.find({
+        "totalJobs.jobName": { $regex: new RegExp(query, "i") },
+      });
+    } else {
+      return res.status(400).json({
+        error: "Invalid search type. Supported types: 'company', 'job'.",
+      });
+    }
+
+    if (searchResults.length === 0) {
+      return res.status(404).json({ message: "No results found." });
+    }
+
+    res.status(200).json(searchResults);
+  } catch (error) {
+    console.error("Search Route Error:", error);
+    res.status(500).json({
+      error: "An error occurred while processing the search request.",
+    });
+  }
+});
 
 // Get job listings for a specific company
 router.get("/:id", async (req, res) => {
