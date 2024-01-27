@@ -51,7 +51,10 @@ async function scrapeCotiviti() {
     await browser.close();
   }
 }
-
+// (async () => {
+//   const scrapedData = await scrapeCotiviti();
+//   console.log(scrapedData);
+// })();
 module.exports = {
   scrapeCotiviti,
 };
