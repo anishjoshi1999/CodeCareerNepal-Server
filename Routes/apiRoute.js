@@ -25,6 +25,29 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.get("/total", async (req, res) => {
+  try {
+    // Fetch all companies and their job listings
+    const allCompanies = await Company.find({});
+    const internJobs = await getInternJobs();
+    // Calculate the total number of jobs
+    let totalJobs = 0;
+    let totalInterns = 0;
+    allCompanies.forEach((company) => {
+      totalJobs += company.totalJobs.length;
+    });
+    internJobs.forEach((company) => {
+      totalInterns += company.totalJobs.length;
+    });
+    res
+      .status(200)
+      .json({ totalCompanies: allCompanies.length, totalJobs, totalInterns });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 // Get intern jobs
 router.get("/intern", async (req, res) => {
   try {
