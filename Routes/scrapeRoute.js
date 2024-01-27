@@ -50,10 +50,34 @@ const scrapingFunctions = [
     name: "Asterdio",
     scrape: require("../Companies/asterdio").scrapeAsterdio,
   },
-  // {
-  //   name: "UBA Solutions",
-  //   scrape: require("../Companies/ubaSolutions").scrapeUBASolutions,
-  // },
+  {
+    name: "Amnil",
+    scrape: require("../Companies/amnil").scrapeAmnilTech,
+  },
+  {
+    name: "Amsoft",
+    scrape: require("../Companies/amsoft").scrapeAmsoft,
+  },
+  {
+    name: "Bajira Technolgoies",
+    scrape: require("../Companies/bajiratechnologies").scrapeBajraTechnologies,
+  },
+  {
+    name: "Clusus",
+    scrape: require("../Companies/clusus").scrapeClusus,
+  },
+  {
+    name: "Code Pixelz Media",
+    scrape: require("../Companies/codepixelzmedia").scrapeCodePixelzMedia,
+  },
+  {
+    name: "Compliance Quest",
+    scrape: require("../Companies/compliancequest").scrapeComplianceQuest,
+  },
+  {
+    name: "MegaBit Nepal (Docsumo",
+    scrape: require("../Companies/Docsumo").scrapeMegaBitNepal,
+  },
 ];
 
 router.get("/", async (req, res) => {
