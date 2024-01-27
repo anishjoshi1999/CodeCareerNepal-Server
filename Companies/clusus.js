@@ -56,10 +56,10 @@ async function scrapeClusus() {
   }
 }
 
-(async () => {
-  const scrapedData = await scrapeClusus();
-  console.log(scrapedData);
-})();
-// module.exports = {
-//   scrapeClusus,
-// };
+// (async () => {
+//   const scrapedData = await scrapeClusus();
+//   console.log(scrapedData);
+// })();
+module.exports = {
+  scrapeClusus,
+};
