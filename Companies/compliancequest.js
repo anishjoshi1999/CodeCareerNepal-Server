@@ -26,7 +26,7 @@ async function scrapeComplianceQuest() {
     const jobsData = await page.$$eval(jobSelector, (jobTitles) => {
       return jobTitles.map((jobTitle) => {
         return {
-          jobsName: jobTitle.textContent.trim(),
+          jobName: jobTitle.textContent.trim(),
           jobUrl: "https://www.compliancequest.com/careers/",
         };
       });

@@ -79,7 +79,7 @@ const scrapingFunctions = [
     scrape: require("../Companies/Docsumo").scrapeMegaBitNepal,
   },
 ];
-
+console.log(scrapingFunctions.length);
 router.get("/", async (req, res) => {
   try {
     // Retrieve the current index from the database

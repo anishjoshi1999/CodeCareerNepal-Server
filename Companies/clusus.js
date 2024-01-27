@@ -44,7 +44,9 @@ async function scrapeClusus() {
 
     return {
       companyName: "Clusus",
-      totalJobs: jobsData,
+      totalJobs: jobsData.filter((e) => {
+        return e != null;
+      }),
     };
   } catch (error) {
     console.error("Error:", error);
@@ -54,10 +56,10 @@ async function scrapeClusus() {
   }
 }
 
-// (async () => {
-//   const scrapedData = await scrapeClusus();
-//   console.log(scrapedData);
-// })();
-module.exports = {
-  scrapeClusus,
-};
+(async () => {
+  const scrapedData = await scrapeClusus();
+  console.log(scrapedData);
+})();
+// module.exports = {
+//   scrapeClusus,
+// };
