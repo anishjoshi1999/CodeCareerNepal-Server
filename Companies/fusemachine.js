@@ -59,12 +59,15 @@ async function scrapeFuseMachine() {
     await browser.close();
   }
 }
+module.exports = {
+  scrapeFuseMachine,
+};
 
-(async () => {
-  try {
-    let temp = await scrapeFuseMachine();
-    console.log(temp);
-  } catch (error) {
-    console.error("Error during scraping:", error);
-  }
-})();
+// (async () => {
+//   try {
+//     let temp = await scrapeFuseMachine();
+//     console.log(temp);
+//   } catch (error) {
+//     console.error("Error during scraping:", error);
+//   }
+// })();
