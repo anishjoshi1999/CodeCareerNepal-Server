@@ -2,7 +2,7 @@ const puppeteer = require("puppeteer");
 
 async function scrapeFuseMachine() {
   let url = "https://fusemachines.com/careers/";
-  let jobSelector = ".row.py-3";
+  let jobSelector = ".list-group-item";
 
   const browser = await puppeteer.launch({
     args: [
@@ -23,34 +23,34 @@ async function scrapeFuseMachine() {
       waitUntil: "domcontentloaded",
     });
     await page.waitForSelector(jobSelector);
-    const parsedUrl = new URL(url);
-    const domain = parsedUrl.hostname;
 
     const elements = await page.$$eval(jobSelector, (elems) => {
       return elems.map((element) => {
+        const jobName = element
+          .querySelector(".list-group-item-heading a")
+          .textContent.trim();
+        const jobLocation = element
+          .querySelector(".list-inline.list-group-item-text li:first-child")
+          .textContent.trim();
+        const jobUrl = element
+          .querySelector(".list-group-item-heading a")
+          .getAttribute("href");
+
         return {
-          jobName: element
-            .querySelector(".col-md-6 .bold-s")
-            .textContent.trim(),
-          jobPlace: element
-            .querySelector(".col-md-4 .c-dark-grey")
-            .textContent.trim(),
-          jobUrl: element.querySelector(".col-md-2 a").getAttribute("href"),
+          jobName,
+          jobLocation,
+          jobUrl,
         };
       });
     });
-    let totalNepalJobs = elements.filter((job) => {
-      return job.jobPlace === "Kathmandu, Nepal";
+
+    const nepalJobs = elements.filter((job) => {
+      return job.jobLocation.includes("Nepal");
     });
-    let refined = totalNepalJobs.map((jobs) => {
-      return {
-        jobName: jobs.jobName,
-        jobUrl: jobs.jobUrl,
-      };
-    });
+
     return {
       companyName: "FuseMachine",
-      totalJobs: [...refined],
+      totalJobs: nepalJobs,
     };
   } catch (error) {
     console.error("Error:", error);
@@ -60,6 +60,11 @@ async function scrapeFuseMachine() {
   }
 }
 
-module.exports = {
-  scrapeFuseMachine,
-};
+(async () => {
+  try {
+    let temp = await scrapeFuseMachine();
+    console.log(temp);
+  } catch (error) {
+    console.error("Error during scraping:", error);
+  }
+})();
