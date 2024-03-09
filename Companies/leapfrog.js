@@ -1,7 +1,9 @@
 const puppeteer = require("puppeteer");
 
 async function scrapeLeapFrog() {
-  let url = "https://career.lftechnology.com/o";
+  let url = "https://career.lftechnology.com/";
+  let jobSelector = ".sc-uzptka-1.dFOnQG";
+
   const browser = await puppeteer.launch({
     args: [
       "--disable-setuid-sandbox",
@@ -14,65 +16,40 @@ async function scrapeLeapFrog() {
         ? process.env.PUPPETEER_EXECUTABLE_PATH
         : puppeteer.executablePath(),
   });
+
   const page = await browser.newPage();
 
   try {
     await page.goto(url, {
       waitUntil: "domcontentloaded",
     });
-    await page.waitForSelector(".sc-bdVaJa.cowVwF");
+    await page.waitForSelector(jobSelector);
 
-    const elements = await page.$$eval(".sc-bdVaJa.cowVwF", (elems) => {
-      return elems.map((element) => {
-        let uri = "https://career.lftechnology.com";
-        return {
-          jobName: getJobName(element),
-          jobUrl: getJobUrl(element, uri),
-          jobPlace: getJobPlace(element),
-        };
+    const jobData = await page.$$eval(jobSelector, (jobs) => {
+      return jobs.map((job) => {
+        const jobName = job.querySelector(".eJyqCF").textContent.trim();
+        const jobUrl =
+          "https://career.lftechnology.com" +
+          job.querySelector(".eJyqCF").getAttribute("href");
+        return { jobName, jobUrl };
       });
     });
 
-    let totalNepalJobs = elements.filter((job) => {
-      return job.jobPlace === "Kathmandu, Nepal";
-    });
-
-    let refined = totalNepalJobs.map((jobs) => {
-      return {
-        jobName: jobs.jobName,
-        jobUrl: jobs.jobUrl,
-      };
-    });
-
     return {
-      companyName: "LeapFrog",
-      totalJobs: [...refined],
+      companyName: "Leapfrog",
+      totalJobs: jobData,
     };
   } catch (error) {
     console.error("Error:", error);
-    // Handle the error as needed
   } finally {
     await browser.close();
   }
 }
 
-function getJobName(element) {
-  return element.querySelector(".job-title a").textContent.trim();
-}
-
-function getJobUrl(element, uri) {
-  return uri + element.querySelector(".job-title a").getAttribute("href");
-}
-
-function getJobPlace(element) {
-  return element.querySelector(".job-location").textContent.trim();
-}
-
-(async () => {
-  try {
-    let temp = await scrapeLeapFrog();
-    console.log(temp);
-  } catch (error) {
-    console.error("Error during scraping:", error);
-  }
-})();
+// (async () => {
+//   const scrapedData = await scrapeLeapfrog();
+//   console.log(scrapedData);
+// })();
+module.exports = {
+  scrapeLeapFrog,
+};
