@@ -2,7 +2,6 @@ const puppeteer = require("puppeteer");
 
 async function scrapeLeapFrog() {
   let url = "https://career.lftechnology.com/o";
-  let jobSelector = ".list-container .job";
   const browser = await puppeteer.launch({
     args: [
       "--disable-setuid-sandbox",
@@ -21,28 +20,30 @@ async function scrapeLeapFrog() {
     await page.goto(url, {
       waitUntil: "domcontentloaded",
     });
-    await page.waitForSelector(jobSelector);
+    await page.waitForSelector(".sc-bdVaJa.cowVwF");
 
-    const elements = await page.$$eval(jobSelector, (elems) => {
+    const elements = await page.$$eval(".sc-bdVaJa.cowVwF", (elems) => {
       return elems.map((element) => {
         let uri = "https://career.lftechnology.com";
         return {
-          jobName: element.querySelector(".job-title a").textContent.trim(),
-          jobUrl:
-            uri + element.querySelector(".job-title a").getAttribute("href"),
-          jobPlace: element.querySelector(".job-location").textContent.trim(),
+          jobName: getJobName(element),
+          jobUrl: getJobUrl(element, uri),
+          jobPlace: getJobPlace(element),
         };
       });
     });
+
     let totalNepalJobs = elements.filter((job) => {
       return job.jobPlace === "Kathmandu, Nepal";
     });
+
     let refined = totalNepalJobs.map((jobs) => {
       return {
         jobName: jobs.jobName,
         jobUrl: jobs.jobUrl,
       };
     });
+
     return {
       companyName: "LeapFrog",
       totalJobs: [...refined],
@@ -55,6 +56,23 @@ async function scrapeLeapFrog() {
   }
 }
 
-module.exports = {
-  scrapeLeapFrog,
-};
+function getJobName(element) {
+  return element.querySelector(".job-title a").textContent.trim();
+}
+
+function getJobUrl(element, uri) {
+  return uri + element.querySelector(".job-title a").getAttribute("href");
+}
+
+function getJobPlace(element) {
+  return element.querySelector(".job-location").textContent.trim();
+}
+
+(async () => {
+  try {
+    let temp = await scrapeLeapFrog();
+    console.log(temp);
+  } catch (error) {
+    console.error("Error during scraping:", error);
+  }
+})();

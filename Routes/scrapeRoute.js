@@ -66,10 +66,10 @@ const scrapingFunctions = [
     name: "Clusus",
     scrape: require("../Companies/clusus").scrapeClusus,
   },
-  {
-    name: "Code Pixelz Media",
-    scrape: require("../Companies/codepixelzmedia").scrapeCodePixelzMedia,
-  },
+  // {
+  //   name: "Code Pixelz Media",
+  //   scrape: require("../Companies/codepixelzmedia").scrapeCodePixelzMedia,
+  // },
   {
     name: "Compliance Quest",
     scrape: require("../Companies/compliancequest").scrapeComplianceQuest,
