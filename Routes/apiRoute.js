@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const router = express.Router();
 const Company = require("../Models/Company");
+const CompanyInfo = require("../Models/CompanyInfo");
 const { getInternJobs } = require("../utils/getInternJobs");
 
 // Number of items to load per page
@@ -24,7 +25,15 @@ router.get("/", async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
-
+//Show all the exisiting Companies in Nepal
+router.get("/show", async (req, res) => {
+  try {
+    const allCompanies = await CompanyInfo.find({});
+    res.status(200).json(allCompanies);
+  } catch (error) {
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 router.get("/total", async (req, res) => {
   try {
     // Fetch all companies and their job listings
