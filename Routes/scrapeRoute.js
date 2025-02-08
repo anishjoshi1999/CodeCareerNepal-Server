@@ -10,10 +10,10 @@ const scrapingFunctions = [
     name: "FuseMachine",
     scrape: require("../Companies/fusemachine").scrapeFuseMachine,
   },
-  {
-    name: "LeapFrog",
-    scrape: require("../Companies/leapfrog").scrapeLeapFrog,
-  },
+  // {
+  //   name: "LeapFrog",
+  //   scrape: require("../Companies/leapfrog").scrapeLeapFrog,
+  // },
   {
     name: "LIS Nepal",
     scrape: require("../Companies/lisnepal").scrapeLISNepal,
@@ -22,6 +22,10 @@ const scrapingFunctions = [
     name: "SoftBenz",
     scrape: require("../Companies/softbenz").scrapeSoftBenz,
   },
+  // {
+  //   name: "Cedargate",
+  //   scrape: require("../Companies/cedargate").scrapeCedargate,
+  // },
   {
     name: "Versik",
     scrape: require("../Companies/verisk").scrapeVerisk,
@@ -83,6 +87,7 @@ router.get("/", async (req, res) => {
   try {
     // Retrieve the current index from the database
     const state = await ScrapeState.findOne();
+    console.log(state)
     const currentScrapeIndex = state ? state.currentIndex : 0;
 
     if (currentScrapeIndex < scrapingFunctions.length) {

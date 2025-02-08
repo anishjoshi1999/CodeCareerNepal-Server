@@ -1,7 +1,9 @@
 const puppeteer = require("puppeteer");
+
 async function scrapeSoftBenz() {
-  let url = "https://softbenz.com/careers";
-  let jobSelector = ".mb-30";
+  let url = "https://softbenz.com/career";
+  let jobSelector = ".career__card";
+
   const browser = await puppeteer.launch({
     args: [
       "--disable-setuid-sandbox",
@@ -14,40 +16,51 @@ async function scrapeSoftBenz() {
         ? process.env.PUPPETEER_EXECUTABLE_PATH
         : puppeteer.executablePath(),
   });
+
   const page = await browser.newPage();
 
   try {
-    await page.goto(url, {
-      waitUntil: "domcontentloaded",
-    });
+    await page.goto(url, { waitUntil: "domcontentloaded" });
     await page.waitForSelector(jobSelector);
 
-    const elements = await page.$$eval(jobSelector, (elems) => {
-      return elems.map((element) => {
+    const elements = await page.$$eval(jobSelector, (cards) => {
+      return cards.map((card) => {
         return {
-          jobName: element.querySelector("h4").textContent.trim(),
-          jobUrl: element.querySelector("a").getAttribute("href"),
+          jobName: card.querySelector("h3").textContent.trim(),
+          // jobCategory:
+          //   card.querySelector(".tags span")?.textContent.trim() || "Unknown",
+          // postDate:
+          //   card
+          //     .querySelector(".date")
+          //     ?.textContent.replace("Post Date:", "")
+          //     .trim() || "Unknown",
+          // jobDescription:
+          //   card.querySelector("p")?.textContent.trim() ||
+          //   "No description available",
+          jobUrl: card.querySelector("a")?.getAttribute("href") || "#",
         };
       });
     });
-    let refined = elements.map((jobs) => {
+
+    let refined = elements.map((job) => {
       return {
-        jobName: jobs.jobName,
-        jobUrl: jobs.jobUrl,
+        jobName: job.jobName,
+        // jobCategory: job.jobCategory,
+        // postDate: job.postDate,
+        // jobDescription: job.jobDescription,
+        jobUrl: `https://softbenz.com${job.jobUrl}`,
       };
     });
+
     return {
       companyName: "SoftBenz",
       totalJobs: [...refined],
     };
   } catch (error) {
     console.error("Error:", error);
-    // Handle the error as needed
   } finally {
     await browser.close();
   }
 }
 
-module.exports = {
-  scrapeSoftBenz,
-};
+module.exports = { scrapeSoftBenz };
