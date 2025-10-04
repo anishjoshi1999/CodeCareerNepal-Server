@@ -2,7 +2,7 @@ const puppeteer = require("puppeteer");
 
 async function scrapeLeapFrog() {
   let url = "https://career.lftechnology.com/";
-  let jobSelector = ".sc-uzptka-1.dFOnQG";
+  let jobSelector = ".sc-uzptka-1.dFOnQG"; // job card container
 
   const browser = await puppeteer.launch({
     args: [
@@ -20,19 +20,25 @@ async function scrapeLeapFrog() {
   const page = await browser.newPage();
 
   try {
-    await page.goto(url, {
-      waitUntil: "domcontentloaded",
-    });
+    await page.goto(url, { waitUntil: "domcontentloaded" });
     await page.waitForSelector(jobSelector);
 
     const jobData = await page.$$eval(jobSelector, (jobs) => {
-      return jobs.map((job) => {
-        const jobName = job.querySelector(".eJyqCF").textContent.trim();
-        const jobUrl =
-          "https://career.lftechnology.com" +
-          job.querySelector(".eJyqCF").getAttribute("href");
-        return { jobName, jobUrl };
-      });
+      return jobs
+        .map((job) => {
+          const jobName = job.querySelector(".eJyqCF")?.textContent?.trim();
+          const jobUrl =
+            "https://career.lftechnology.com" +
+            job.querySelector(".eJyqCF")?.getAttribute("href");
+
+          const locationEl = job.querySelector(
+            "[data-testid='styled-location-list-item'] .custom-css-style-job-location-city"
+          );
+          const location = locationEl ? locationEl.textContent.trim() : "";
+
+          return { jobName, jobUrl, location };
+        })
+        .filter((job) => job.location === "Kathmandu"); // ✅ only Kathmandu
     });
 
     return {
@@ -46,10 +52,6 @@ async function scrapeLeapFrog() {
   }
 }
 
-// (async () => {
-//   const scrapedData = await scrapeLeapfrog();
-//   console.log(scrapedData);
-// })();
 module.exports = {
   scrapeLeapFrog,
 };

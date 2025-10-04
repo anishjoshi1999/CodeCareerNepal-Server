@@ -1,52 +1,49 @@
 const axios = require("axios");
-//scrapeInfoDev
+const cheerio = require("cheerio");
+
 async function scrapeInfoDev() {
-  let url = "https://www.infodev.com.np/api/job/openings/";
+  const url = "https://infodev.com.np/careers";
+
   try {
+    const { data } = await axios.get(url);
+    const $ = cheerio.load(data);
+
     const jobs = [];
-    let nextUrl = url;
 
-    // Use a loop to fetch data until there is no "next" URL
-    for (;;) {
-      const response = await axios.get(nextUrl);
+    $(".container.mt-6 > .border-b").each((i, el) => {
+      const jobTitle = $(el).find("h3.text-blue-900").text().trim();
+      const location = $(el).find("div > div.flex.items-center.gap-2 p").first().text().trim();
+      const jobType = $(el).find("div > div.flex.items-center.gap-2 p").eq(1).text().trim();
+      const department = $(el).find("div > div.flex.items-center.gap-2 p").eq(2).text().trim();
+      const summary = $(el).find("div.text-gray-600").text().trim().replace(/\s+/g, " ");
 
-      const temp = response.data.data;
-      jobs.push(...temp.results);
+      // Use the Apply button link if needed
+      const applyUrl = "https://infodev.com.np/careers"; // no unique link in HTML
 
-      if (temp.next !== null) {
-        // Update nextUrl for the next iteration
-        nextUrl = temp.next;
-      } else {
-        console.log("No More Jobs to Show");
-        break; // Exit the loop when there is no "next" URL
-      }
-    }
-    //filter your input
-    let temp1 = jobs.map((job) => {
-      return {
-        jobName: job.title,
-        jobUrl: "https://infodev.com.np/careers-listing",
-      };
+      jobs.push({
+        jobName: jobTitle,
+        location,
+        jobType,
+        department,
+        summary,
+        jobUrl: applyUrl,
+      });
     });
 
     return {
       companyName: "Info Developers",
-      totalJobs: temp1,
+      totalJobs: jobs,
     };
   } catch (error) {
-    // Handle errors
-    console.error("Error fetching data:", error.message);
-    // Return an empty array in case of an error
+    console.error("Error fetching InfoDev jobs:", error.message);
     return [];
   }
 }
 
-// Call the function with the initial URL
-// (async () => {
-//   const value = await scrapeInfoDev();
-//   console.log(value);
-// })();
+// Example usage
+(async () => {
+  const jobsData = await scrapeInfoDev();
+  console.log(jobsData);
+})();
 
-module.exports = {
-  scrapeInfoDev,
-};
+module.exports = { scrapeInfoDev };
