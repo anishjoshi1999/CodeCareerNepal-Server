@@ -17,14 +17,13 @@ const scrapingFunctions = [
   { name: "InfoDevelopers", scrape: require("../Companies/infodev").scrapeInfoDev }, // completed
   { name: "Ekbana", scrape: require("../Companies/ekbana").scrapeEkbana },
   { name: "Deerhold", scrape: require("../Companies/deerhold").scrapeDeerhold }, // completed
-  { name: "Asterdio", scrape: require("../Companies/asterdio").scrapeAsterdio },
-  { name: "Amnil", scrape: require("../Companies/amnil").scrapeAmnilTech },
-  { name: "Amsoft", scrape: require("../Companies/amsoft").scrapeAmsoft },
-  { name: "Bajira Technolgoies", scrape: require("../Companies/bajiratechnologies").scrapeBajraTechnologies },
-  { name: "Clusus", scrape: require("../Companies/clusus").scrapeClusus },
-  { name: "Code Pixelz Media", scrape: require("../Companies/codepixelzmedia").scrapeCodePixelzMedia },
-  { name: "Compliance Quest", scrape: require("../Companies/compliancequest").scrapeComplianceQuest },
-  { name: "MegaBit Nepal (Docsumo)", scrape: require("../Companies/Docsumo").scrapeMegaBitNepal },
+  { name: "Asterdio", scrape: require("../Companies/asterdio").scrapeAsterdio }, // completed
+  { name: "Amnil", scrape: require("../Companies/amnil").scrapeAmnilTech }, // completed
+  { name: "BajiraTechnolgoies", scrape: require("../Companies/bajiratechnologies").scrapeBajraTechnologies },
+  { name: "Clusus", scrape: require("../Companies/clusus").scrapeClusus }, // completed
+  { name: "CodePixelzMedia", scrape: require("../Companies/codepixelzmedia").scrapeCodePixelzMedia }, // completed
+  { name: "ComplianceQuest", scrape: require("../Companies/compliancequest").scrapeComplianceQuest },
+  { name: "MegaBitNepalDocsumo", scrape: require("../Companies/Docsumo").scrapeMegaBitNepal },
 ];
 router.get("/:name", async (req, res) => {
   try {

@@ -40,10 +40,4 @@ async function scrapeInfoDev() {
   }
 }
 
-// Example usage
-(async () => {
-  const jobsData = await scrapeInfoDev();
-  console.log(jobsData);
-})();
-
 module.exports = { scrapeInfoDev };

@@ -42,10 +42,6 @@ async function scrapeDeerhold() {
     await browser.close();
   }
 }
-// (async () => {
-//   const scrapedData = await scrapeDeerhold();
-//   console.log(scrapedData);
-// })();
 
 module.exports = {
   scrapeDeerhold,

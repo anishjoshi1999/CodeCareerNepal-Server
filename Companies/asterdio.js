@@ -1,8 +1,9 @@
 const puppeteer = require("puppeteer");
 
 async function scrapeAsterdio() {
-  let url = "https://retalent.io/employer/asterdio-inc";
-  let jobSelector = ".job-list";
+  const url = "https://asterdio.com/job-openings/";
+  const jobSelector = ".awsm-job-listing-item";
+
   const browser = await puppeteer.launch({
     args: [
       "--disable-setuid-sandbox",
@@ -15,25 +16,23 @@ async function scrapeAsterdio() {
         ? process.env.PUPPETEER_EXECUTABLE_PATH
         : puppeteer.executablePath(),
   });
+
   const page = await browser.newPage();
 
   try {
-    await page.goto(url, {
-      waitUntil: "domcontentloaded",
-    });
+    await page.goto(url, { waitUntil: "domcontentloaded" });
     await page.waitForSelector(jobSelector);
 
     const jobsData = await page.$$eval(jobSelector, (jobs) => {
-      return jobs.map((job) => {
-        const titleElement = job.querySelector(".job-title a");
-        const jobName = titleElement.textContent.trim();
-        const jobUrl = titleElement.href;
+      return jobs
+        .map((job) => {
+          const titleElement = job.querySelector("h2.awsm-job-post-title a");
+          const jobName = titleElement ? titleElement.textContent.trim() : null;
+          const jobUrl = titleElement ? titleElement.href : null;
 
-        return {
-          jobName,
-          jobUrl,
-        };
-      });
+          return { jobName, jobUrl };
+        })
+        .filter((job) => job.jobName && job.jobUrl); // filter out empty results
     });
 
     return {
@@ -41,17 +40,12 @@ async function scrapeAsterdio() {
       totalJobs: jobsData,
     };
   } catch (error) {
-    console.error("Error:", error);
-    // Handle the error as needed
+    console.error("Error scraping Asterdio:", error);
   } finally {
     await browser.close();
   }
 }
 
-// (async () => {
-//   const scrapedData = await scrapeAsterdio();
-//   console.log(scrapedData);
-// })();
 module.exports = {
   scrapeAsterdio,
 };
