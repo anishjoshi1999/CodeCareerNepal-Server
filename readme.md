@@ -1,153 +1,113 @@
-# CodeCareerNepal-Server
+# job-listings-scraper
 
-This repository contains the source code for CodeCareerNepal, a job portal application. The application is built using Node.js, Express, MongoDB, and Puppeteer for web scraping.
+A small Node.js package to scrape job listings from multiple Nepal-based (and related) company career pages.
 
-## Table of Contents
+This repository exports a simple API you can use to fetch job listings for a supported company.
 
-- [MongoDB Schemas](#mongodb-schemas)
-- [API Routes](#api-routes)
-- [Scraping Routes](#scraping-routes)
-- [Utility Functions](#utility-functions)
-- [Docker Configuration](#docker-configuration)
-- [Environment Configuration](#environment-configuration)
-- [Application Setup](#application-setup)
-- [Usage](#usage)
+## Installation
 
-## MongoDB Schemas
+Install from npm (if published) or use locally by cloning this repo.
 
-### Job Schema (`jobSchema`)
+From npm:
 
-- `jobName`: String, required.
-- `jobUrl`: String, required.
-- `updatedAt`: Date, default: current date.
+```bash
+npm install job-listings-scraper
+```
 
-### Company Schema (`companySchema`)
+From the repository (local development):
 
-- `companyName`: String, required.
-- `totalJobs`: Array of `jobSchema`, required.
-- `createdAt`: Date, default: current date.
-- `updatedAt`: Date, default: current date.
+```powershell
+git clone https://github.com/anishjoshi1999/CodeCareerNepal-Server.git
+cd "CodeCareerNepal-Server"
+npm install
+```
 
-### Scrape State Schema (`scrapeStateSchema`)
+## Quick usage
 
-- `currentIndex`: Number, default: 0.
-- `updatedAt`: Date, default: current date.
+The package exposes a single convenience function `getJobs(companyName)` from the module entrypoint (`index.js`). It returns a Promise which resolves to an array of job objects scraped for the given company.
 
-## API Routes
+Example (Node.js):
 
-### GET `/`
+```javascript
+const { getJobs } = require('job-listings-scraper'); // or require('./index') when using repo locally
 
-- Returns a paginated list of all company job listings.
+(async () => {
+	try {
+		const jobs = await getJobs('Cotiviti');
+		console.log(jobs);
+	} catch (err) {
+		console.error('Error:', err.message);
+	}
+})();
+```
 
-### GET `/intern`
+API contract
 
-- Fetches and returns intern jobs using the `getInternJobs` utility function.
+- Input: companyName (string) — case-insensitive name of a supported company
+- Output: Promise<Array<Object>> — array of job objects (shape depends on each scraper but usually contains title, location, url and posted date when available)
+- Errors: throws an Error if company is not found or scraping fails
 
-### GET `/:id`
+Listing available companies
 
-- Returns job listings for a specific company based on the provided company ID.
+If you're unsure which company names to pass to `getJobs()`, use the helper `listCompanies()` which returns the registered company names the package knows about.
 
-## Scraping Routes
+Example:
 
-### GET `/scrape`
+```javascript
+const { listCompanies } = require('job-listings-scraper');
 
-- Initiates web scraping for multiple companies using predefined scraping functions.
-- Scraping functions are defined for companies such as Cotiviti, FuseMachine, LeapFrog, and others.
+console.log(listCompanies());
+// -> ['Cotiviti', 'FuseMachine', 'LeapFrog', ...]
+```
 
-## Utility Functions
+Tip: `listCompanies()` returns the same strings registered in the `index.js` entrypoint. Use any of those strings (case-insensitive) with `getJobs(companyName)`.
 
-### `getInternJobs.js`
+Scripts
 
-- Filters and projects relevant intern jobs from the MongoDB collection.
+- `npm start` — runs `node index` (entrypoint)
+- `npm run dev` — runs `nodemon index.js` (requires `nodemon` to be installed globally or as a devDependency)
 
-### `store.js`
+Supported companies
 
-- Stores job data into the MongoDB collection.
+The following company names (case-insensitive) are wired into the entrypoint. Use one of these strings with `getJobs()`:
 
-## Docker Configuration
+- Cotiviti
+- FuseMachine
+- LeapFrog
+- LISNepal
+- SoftBenz
+- Cedargate
+- Versik (note: spelled `verisk` in code)
+- EbPearls
+- LogPointNepal
+- InfoDevelopers
+- Ekbana
+- Deerhold
+- Asterdio
+- Amnil
+- BajiraTechnolgoies
+- Clusus
+- CodePixelzMedia
+- ComplianceQuest
+- MegaBitNepalDocsumo
 
-The application is containerized using Docker.
+Note: The exact internal module names map from the `Companies/` folder. If a company entry throws "not found", check `index.js` for the exact registered `name` strings and use the same.
 
-- Base image: Puppeteer (version 21.6.1).
-- Installs Node.js dependencies and sets the entry point to `index.js`.
+Troubleshooting
 
-## Environment Configuration
+- If you get "Company 'X' not found.", verify the name matches one of the supported company names above (case-insensitive).
+- If a scraper returns an empty array, the company's website markup may have changed — open an issue or update the corresponding file in `Companies/`.
+- Some scrapers may require additional dependencies (e.g., Puppeteer is included in `package.json`). Install the dependencies with `npm install` before running.
 
-- Environment variables are loaded using the `dotenv` package.
-- Key variables include `MONGODB_URI` for MongoDB connection and `PORT` for the application.
+Contributing
 
-## Application Setup
+Contributions are welcome. To add a new company scraper:
 
-1.  Clone the repository: `git clone https://github.com/anishjoshi1999/CodeCareerNepal.git`
-2.  Install dependencies: `npm install`
-3.  Set up environment variables: Create a `.env` file with required configurations.
-4.  Start the application: `npm start` or `npm run dev` for development.
+1. Create a new file under `Companies/` that exports a scraping function (e.g. `scrapeNewCo`) and exposes it via `module.exports`.
+2. Register the function in `index.js` by adding an entry to the `scrapingFunctions` array with a `name` and `scrape` reference.
+3. Add tests or a small script to verify the scraper works.
 
-## Usage
+License
 
-- Access the job portal API through the defined routes.
-- Initiate web scraping for new job listings using the `/scrape` route.
+MIT
 
-Note: Ensure proper error handling, logging, and security measures are implemented before deploying the application in a production environment.
-
-# Contribution Guidelines
-
-Thank you for considering contributing to our project! We appreciate the community's involvement in making this project better.
-
-## Ways to Contribute
-
-There are several ways you can contribute to this project:
-
-1. Reporting Bugs: If you find a bug, please open an issue. Provide a clear and detailed description, including steps to reproduce the issue.
-
-2. Suggesting Enhancements: Have an idea to improve the project? Feel free to open an issue with your enhancement suggestion, and we can discuss it.
-
-3. Fixing Issues: Want to tackle an existing issue or contribute a new feature? Fork the repository, create a new branch, make your changes, and submit a pull request.
-
-## How to Contribute
-
-To contribute to this project, follow these steps:
-
-1. Fork the repository to your GitHub account.
-
-2. Clone the forked repository to your local machine:
-
-   ```bash
-   git clone https://github.com/anishjoshi1999/CodeCareerNepal-Server.git
-   ```
-
-3. Create a new branch for your contribution:
-
-   ```bash
-   git checkout -b feature/your-feature
-   ```
-
-4. Make your changes and test them thoroughly.
-
-5. Commit your changes:
-
-   ```bash
-   git commit -m "Your meaningful commit message"
-   ```
-
-6. Push your changes to your fork:
-
-   ```bash
-   git push origin feature/your-feature
-   ```
-
-7. Submit a pull request to the 'dev' branch of this repository, ensuring that your changes are clearly described and any relevant issues are referenced.
-
-## Code Style and Guidelines
-
-Follow the established coding style and guidelines for this project. If there are specific conventions to adhere to, they will be mentioned here. Ensure that your code passes any existing tests.
-
-## Code of Conduct
-
-Please adhere to our [Code of Conduct](CODE_OF_CONDUCT.md). We aim to foster a welcoming and inclusive community.
-
-## Licensing
-
-By contributing to this project, you agree that your contributions will be licensed under the project's [LICENSE](LICENSE.md).
-
-Thank you for your contribution!

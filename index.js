@@ -1,40 +1,38 @@
-const express = require("express");
-const mongoose = require("mongoose");
-const dotenv = require("dotenv");
-const app = express();
-const cors = require("cors");
-// Load environment variables
-dotenv.config();
+// Import all company scrapers
+const scrapingFunctions = [
+  { name: "Cotiviti", scrape: require("./Companies/cotiviti").scrapeCotiviti },
+  { name: "FuseMachine", scrape: require("./Companies/fusemachine").scrapeFuseMachine },
+  { name: "LeapFrog", scrape: require("./Companies/leapfrog").scrapeLeapFrog },
+  { name: "LISNepal", scrape: require("./Companies/lisnepal").scrapeLISNepal },
+  { name: "SoftBenz", scrape: require("./Companies/softbenz").scrapeSoftBenz },
+  { name: "Cedargate", scrape: require("./Companies/cedargate").scrapeCedargate },
+  { name: "Versik", scrape: require("./Companies/verisk").scrapeVerisk },
+  { name: "EbPearls", scrape: require("./Companies/ebperl").scrapeEbPearls },
+  { name: "LogPointNepal", scrape: require("./Companies/logpoint").scrapeLogPoint },
+  { name: "InfoDevelopers", scrape: require("./Companies/infodev").scrapeInfoDev },
+  { name: "Ekbana", scrape: require("./Companies/ekbana").scrapeEkbana },
+  { name: "Deerhold", scrape: require("./Companies/deerhold").scrapeDeerhold },
+  { name: "Asterdio", scrape: require("./Companies/asterdio").scrapeAsterdio },
+  { name: "Amnil", scrape: require("./Companies/amnil").scrapeAmnilTech },
+  { name: "BajiraTechnolgoies", scrape: require("./Companies/bajiratechnologies").scrapeBajraTechnologies },
+  { name: "Clusus", scrape: require("./Companies/clusus").scrapeClusus },
+  { name: "CodePixelzMedia", scrape: require("./Companies/codepixelzmedia").scrapeCodePixelzMedia },
+  { name: "ComplianceQuest", scrape: require("./Companies/compliancequest").scrapeComplianceQuest },
+  { name: "MegaBitNepalDocsumo", scrape: require("./Companies/Docsumo").scrapeMegaBitNepal },
+];
 
-const PORT = process.env.PORT || 3000;
-app.use(cors());
-// Importing Routes
-const scrapeRoute = require("./Routes/scrapeRoute");
-const apiRoute = require("./Routes/apiRoute");
+async function getJobs(companyName) {
+  const company = scrapingFunctions.find(
+    (c) => c.name.toLowerCase() === companyName.toLowerCase()
+  );
+  if (!company) throw new Error(`Company '${companyName}' not found.`);
+  const jobs = await company.scrape();
+  return jobs;
+}
 
-// Connection to Database
+function listCompanies() {
+  // Return the registered company names in the scrapingFunctions array
+  return scrapingFunctions.map((c) => c.name);
+}
 
-const MONGODB_URI = `${process.env.MONGODB_URI}`;
-
-mongoose.set("strictQuery", false);
-
-mongoose
-  .connect(MONGODB_URI)
-  .then(() => {
-    app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
-    });
-
-    console.log("Connected to MongoDB Atlas");
-  })
-  .catch((err) => {
-    console.error("Error connecting to MongoDB Atlas:", err);
-  });
-
-// Routes
-app.get("/", (req, res) => {
-  res.send("Welcome to CodeCareerNepal");
-});
-
-app.use("/scrape", scrapeRoute);
-app.use("/api", apiRoute);
+module.exports = { getJobs, listCompanies };
