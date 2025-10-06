@@ -35,7 +35,7 @@ async function scrapeLogPoint() {
 
     return {
       companyName: "LogPoint",
-      jobs,
+      totalJobs: jobs,
     };
   } catch (error) {
     console.error("Error scraping LogPoint:", error);

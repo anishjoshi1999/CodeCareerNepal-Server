@@ -37,7 +37,7 @@ async function scrapeVerisk() {
     );
 
     return {
-      companyName: "Oracle Cloud (Nepal Jobs)",
+      companyName: "Verisk",
       totalJobs: jobs,
     };
   } catch (err) {

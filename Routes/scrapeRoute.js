@@ -48,6 +48,10 @@ const scrapingFunctions = [
     name: "MegaBitNepalDocsumo",
     scrape: require("../Companies/Docsumo").scrapeMegaBitNepal,
   },
+    {
+    name: "F1SoftGroup",
+    scrape: require("../Companies/f1soft").scrapeF1Soft,
+  },
 ];
 
 router.get("/", async (req, res) => {

@@ -1,8 +1,12 @@
 const puppeteer = require("puppeteer");
+
 async function scrapeF1Soft() {
-  let url = "https://www.f1soft.com/career#vacanciesList";
-  let jobSelector = ".card-body";
+  const baseUrl = "https://career.f1soft.com/jobs";
+  const jobSelector = ".features-job.cl2";
+  const nextSelector = ".pagination li a[rel='next']";
+
   const browser = await puppeteer.launch({
+    headless: true,
     args: [
       "--disable-setuid-sandbox",
       "--no-sandbox",
@@ -14,43 +18,83 @@ async function scrapeF1Soft() {
         ? process.env.PUPPETEER_EXECUTABLE_PATH
         : puppeteer.executablePath(),
   });
+
   const page = await browser.newPage();
+  let allJobs = [];
+  let currentPage = 1;
+  let hasNext = true;
 
   try {
-    await page.goto(url, {
-      waitUntil: "domcontentloaded",
-    });
-    await page.waitForSelector(jobSelector);
-    const parsedUrl = new URL(url);
-    const domain = parsedUrl.hostname;
-    const elements = await page.$$eval(jobSelector, (elems) => {
-      return elems.map((element) => {
-        let uri = "https://www.f1soft.com";
-        return {
-          jobName: element
-            .querySelector(".header .card-title")
-            .textContent.trim(),
-          jobUrl: uri + element.querySelector("a").getAttribute("href"),
-        };
+    while (hasNext) {
+      console.log(`🟩 Scraping page ${currentPage}...`);
+      await page.goto(`${baseUrl}?page=${currentPage}`, {
+        waitUntil: "domcontentloaded",
+        timeout: 0,
       });
-    });
-    let refined = elements.map((jobs) => {
-      return {
-        jobName: jobs.jobName,
-        jobUrl: jobs.jobUrl,
-      };
-    });
+
+      await page.waitForSelector(jobSelector, { timeout: 10000 });
+
+      const jobsOnPage = await page.$$eval(jobSelector, (elems) =>
+        elems.map((el) => {
+          const jobTitle = el.querySelector("h3 a")?.textContent?.trim() || "";
+          const jobUrl = el.querySelector("h3 a")?.href || "";
+
+          const companyName =
+            el.querySelector(".fw-600.text-f1.small")?.textContent?.trim() ||
+            "F1Soft International";
+
+          const location =
+            el.querySelector(".icon-map-pin + span")?.textContent?.trim() || "";
+          const postedDate =
+            el.querySelector(".icon-calendar + span")?.textContent?.trim() ||
+            "";
+          const jobType =
+            el
+              .querySelector(".job-tag li:nth-child(1) a")
+              ?.textContent?.trim() || "";
+          const level =
+            el
+              .querySelector(".job-tag li:nth-child(2) a")
+              ?.textContent?.trim() || "";
+          const category =
+            el
+              .querySelector(".job-tag li:nth-child(3) a")
+              ?.textContent?.trim() || "";
+          const deadline =
+            el.querySelector(".days span:last-child")?.textContent?.trim() ||
+            "";
+
+          return {
+            jobName: `${jobTitle} at ${companyName}`,
+            jobUrl,
+          };
+        })
+      );
+
+      allJobs.push(...jobsOnPage);
+
+      // Check for "Next" page
+      const nextBtn = await page.$(nextSelector);
+      if (nextBtn) {
+        currentPage++;
+        await new Promise((resolve) => setTimeout(resolve, 1500)); // ✅ replaced waitForTimeout
+      } else {
+        hasNext = false;
+      }
+    }
+
+    console.log(`✅ Total jobs scraped from F1Soft: ${allJobs.length}`);
+
     return {
-      companyName: "F1Soft International",
-      totalJobs: [...refined],
+      companyName: "F1Soft Group",
+      totalJobs: allJobs,
     };
   } catch (error) {
-    console.error("Error:", error);
-    // Handle the error as needed
+    console.error("❌ Error while scraping F1Soft careers:", error);
+    return [];
   } finally {
     await browser.close();
   }
 }
-module.exports = {
-  scrapeF1Soft,
-};
+
+module.exports = { scrapeF1Soft };
