@@ -5,41 +5,41 @@ const ScrapeState = require("../Models/scrapeState");
 
 // Full scraping functions list
 const scrapingFunctions = [
-  { name: "Cotiviti", scrape: require("../Companies/cotiviti").scrapeCotiviti }, // completed
+  { name: "Cotiviti", scrape: require("../Companies/cotiviti").scrapeCotiviti },
   {
     name: "FuseMachine",
     scrape: require("../Companies/fusemachine").scrapeFuseMachine,
-  }, // completed
-  { name: "LeapFrog", scrape: require("../Companies/leapfrog").scrapeLeapFrog }, // completed
-  { name: "LISNepal", scrape: require("../Companies/lisnepal").scrapeLISNepal }, // completed
-  { name: "SoftBenz", scrape: require("../Companies/softbenz").scrapeSoftBenz }, // completed
+  },
+  { name: "LeapFrog", scrape: require("../Companies/leapfrog").scrapeLeapFrog },
+  { name: "LISNepal", scrape: require("../Companies/lisnepal").scrapeLISNepal },
+  { name: "SoftBenz", scrape: require("../Companies/softbenz").scrapeSoftBenz },
   {
     name: "Cedargate",
     scrape: require("../Companies/cedargate").scrapeCedargate,
-  }, // completed
-  { name: "Versik", scrape: require("../Companies/verisk").scrapeVerisk }, // completed
-  { name: "EbPearls", scrape: require("../Companies/ebperl").scrapeEbPearls }, // completed
+  },
+  { name: "Versik", scrape: require("../Companies/verisk").scrapeVerisk },
+  { name: "EbPearls", scrape: require("../Companies/ebperl").scrapeEbPearls },
   {
     name: "LogPointNepal",
     scrape: require("../Companies/logpoint").scrapeLogPoint,
-  }, // completed
+  },
   {
     name: "InfoDevelopers",
     scrape: require("../Companies/infodev").scrapeInfoDev,
-  }, // completed
+  },
   { name: "Ekbana", scrape: require("../Companies/ekbana").scrapeEkbana },
-  { name: "Deerhold", scrape: require("../Companies/deerhold").scrapeDeerhold }, // completed
-  { name: "Asterdio", scrape: require("../Companies/asterdio").scrapeAsterdio }, // completed
-  { name: "Amnil", scrape: require("../Companies/amnil").scrapeAmnilTech }, // completed
+  { name: "Deerhold", scrape: require("../Companies/deerhold").scrapeDeerhold },
+  { name: "Asterdio", scrape: require("../Companies/asterdio").scrapeAsterdio },
+  { name: "Amnil", scrape: require("../Companies/amnil").scrapeAmnilTech },
   {
     name: "BajiraTechnolgoies",
     scrape: require("../Companies/bajiratechnologies").scrapeBajraTechnologies,
   },
-  { name: "Clusus", scrape: require("../Companies/clusus").scrapeClusus }, // completed
+  { name: "Clusus", scrape: require("../Companies/clusus").scrapeClusus },
   {
     name: "CodePixelzMedia",
     scrape: require("../Companies/codepixelzmedia").scrapeCodePixelzMedia,
-  }, // completed
+  },
   {
     name: "ComplianceQuest",
     scrape: require("../Companies/compliancequest").scrapeComplianceQuest,
@@ -48,9 +48,13 @@ const scrapingFunctions = [
     name: "MegaBitNepalDocsumo",
     scrape: require("../Companies/Docsumo").scrapeMegaBitNepal,
   },
-    {
+  {
     name: "F1SoftGroup",
     scrape: require("../Companies/f1soft").scrapeF1Soft,
+  },
+    {
+    name: "UBASolutions",
+    scrape: require("../Companies/ubaSolutions").scrapeUBASolutions,
   },
 ];
 

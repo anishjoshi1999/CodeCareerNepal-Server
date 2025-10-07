@@ -1,10 +1,11 @@
 const puppeteer = require("puppeteer");
 
 async function scrapeUBASolutions() {
-  let url = "https://uba-solutions.com/";
-  let jobTitleSelector = ".quary h6"; // Selector for job titles
+  const url = "https://uba-solutions.com/career/"; // Fixed URL
+  const jobSelector = ".uba-list__list-item";
 
   const browser = await puppeteer.launch({
+    headless: true,
     args: [
       "--disable-setuid-sandbox",
       "--no-sandbox",
@@ -16,35 +17,49 @@ async function scrapeUBASolutions() {
         ? process.env.PUPPETEER_EXECUTABLE_PATH
         : puppeteer.executablePath(),
   });
+
   const page = await browser.newPage();
 
   try {
-    await page.goto(url, {
-      waitUntil: "domcontentloaded",
-    });
-    await page.waitForSelector(jobTitleSelector);
+    // Load full page (wait for network activity to settle)
+    await page.goto(url, { waitUntil: "networkidle2", timeout: 60000 });
 
-    const elements = await page.$$eval(jobTitleSelector, (elems) => {
-      return elems.map((element) => {
+    // Wait for the section with animation to be visible
+    await page.waitForSelector("#job-openning", { timeout: 30000 });
+
+    // Wait for job list items to be rendered
+    await page.waitForSelector(jobSelector, { timeout: 30000 });
+
+    const jobs = await page.$$eval(jobSelector, (items) =>
+      items.map((item) => {
+        const titleElem = item.querySelector(".uba-list--career__title a");
+        const typeElem = item.querySelector(".uba-list--career__job-type");
+
         return {
-          jobName: element.textContent.trim(),
-          jobUrl: "https://uba-solutions.com/",
+          jobName: titleElem ? titleElem.textContent.trim() : null,
+          jobUrl: titleElem ? titleElem.href : null,
+          jobType: typeElem ? typeElem.textContent.trim() : null,
         };
-      });
-    });
+      })
+    );
+
+    // Filter out any null entries
+    const validJobs = jobs.filter(job => job.jobName && job.jobUrl);
 
     return {
       companyName: "UBA Solutions",
-      totalJobs: [...elements],
+      totalJobs: validJobs,
     };
   } catch (error) {
-    console.error("Error:", error);
-    // Handle the error as needed
+    console.error("Error scraping UBA Solutions:", error);
+    return {
+      companyName: "UBA Solutions",
+      totalJobs: [],
+      error: error.message,
+    };
   } finally {
     await browser.close();
   }
 }
 
-module.exports = {
-  scrapeUBASolutions,
-};
+module.exports = { scrapeUBASolutions };
