@@ -9,6 +9,14 @@ const jobSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  jobLocation: {
+    type: String,
+    required: true,
+  },
+  jobDetails: {
+    jobDescriptionText: { type: String },
+  },
+
   updatedAt: {
     type: Date,
     default: Date.now,
@@ -23,6 +31,10 @@ const companySchema = new mongoose.Schema({
   totalJobs: {
     type: [jobSchema],
     required: true,
+  },
+  isDirectApply: {
+    type: Boolean,
+    default: false,
   },
   createdAt: {
     type: Date,

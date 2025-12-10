@@ -34,15 +34,14 @@ async function scrapeLeapFrog() {
           const locationEl = job.querySelector(
             "[data-testid='styled-location-list-item'] .custom-css-style-job-location-city"
           );
-          const location = locationEl ? locationEl.textContent.trim() : "";
+          const jobLocation = locationEl ? locationEl.textContent.trim() : "";
 
-          return { jobName, jobUrl, location };
+          return { jobName, jobUrl, jobLocation };
         })
-        .filter((job) => job.location === "Kathmandu"); // ✅ only Kathmandu
     });
 
     return {
-      companyName: "Leapfrog",
+      companyName: "LeapFrog",
       totalJobs: jobData,
     };
   } catch (error) {

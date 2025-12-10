@@ -16,12 +16,11 @@ async function scrapeFuseMachine() {
         ? process.env.PUPPETEER_EXECUTABLE_PATH
         : puppeteer.executablePath(),
   });
+
   const page = await browser.newPage();
 
   try {
-    await page.goto(url, {
-      waitUntil: "domcontentloaded",
-    });
+    await page.goto(url, { waitUntil: "domcontentloaded" });
     await page.waitForSelector(jobSelector);
 
     const elements = await page.$$eval(jobSelector, (elems) => {
@@ -29,45 +28,32 @@ async function scrapeFuseMachine() {
         const jobName = element
           .querySelector(".list-group-item-heading a")
           .textContent.trim();
-        const jobLocation = element
-          .querySelector(".list-inline.list-group-item-text li:first-child")
-          .textContent.trim();
-        const jobUrl = element
-          .querySelector(".list-group-item-heading a")
-          .getAttribute("href");
 
-        return {
-          jobName,
-          jobLocation,
-          jobUrl,
-        };
+        const jobLocation =
+          element
+            .querySelector(".list-inline.list-group-item-text li:first-child")
+            ?.textContent.trim() || "Not provided";
+
+        const jobUrl =
+          element
+            .querySelector(".list-group-item-heading a")
+            .getAttribute("href") || "";
+
+        return { jobName, jobLocation, jobUrl };
       });
     });
 
-    const nepalJobs = elements.filter((job) => {
-      return job.jobLocation.includes("Nepal");
-    });
-
+    // Return ALL JOBS
     return {
       companyName: "FuseMachine",
-      totalJobs: nepalJobs,
+      totalJobs: elements,
+      isDirectApply: true,
     };
   } catch (error) {
     console.error("Error:", error);
-    // Handle the error as needed
   } finally {
     await browser.close();
   }
 }
-module.exports = {
-  scrapeFuseMachine,
-};
 
-// (async () => {
-//   try {
-//     let temp = await scrapeFuseMachine();
-//     console.log(temp);
-//   } catch (error) {
-//     console.error("Error during scraping:", error);
-//   }
-// })();
+module.exports = { scrapeFuseMachine };
