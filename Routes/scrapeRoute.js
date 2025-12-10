@@ -13,7 +13,7 @@ const scrapingFunctions = [
   },
   { name: "EbPearls", scrape: require("../Companies/ebperl").scrapeEbPearls },
   { name: "Verisk", scrape: require("../Companies/verisk").scrapeVerisk },
-  // { name: "LeapFrog", scrape: require("../Companies/leapfrog").scrapeLeapFrog },
+  { name: "LeapFrog", scrape: require("../Companies/leapfrog").scrapeLeapFrog },
   // { name: "LISNepal", scrape: require("../Companies/lisnepal").scrapeLISNepal },
   // { name: "SoftBenz", scrape: require("../Companies/softbenz").scrapeSoftBenz },
   // {
@@ -72,6 +72,10 @@ const scrapingInsideFunctions = [
   {
     name: "Verisk",
     scrape: require("../Companies/inside/verisk").scrapeInsideVerisk,
+  },
+    {
+    name: "LeapFrog",
+    scrape: require("../Companies/inside/leapfrog").scrapeLeapFrogJobDetails,
   },
 ];
 router.get("/", async (req, res) => {

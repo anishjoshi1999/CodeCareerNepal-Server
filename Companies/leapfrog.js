@@ -36,13 +36,14 @@ async function scrapeLeapFrog() {
           );
           const jobLocation = locationEl ? locationEl.textContent.trim() : "";
 
-          return { jobName, jobUrl, jobLocation };
+          return { jobName, jobUrl, jobLocation};
         })
     });
 
     return {
       companyName: "LeapFrog",
       totalJobs: jobData,
+      isDirectApply: true,
     };
   } catch (error) {
     console.error("Error:", error);
