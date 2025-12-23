@@ -14,6 +14,7 @@ const scrapingFunctions = [
   { name: "EbPearls", scrape: require("../Companies/ebperl").scrapeEbPearls },
   { name: "Verisk", scrape: require("../Companies/verisk").scrapeVerisk },
   { name: "LeapFrog", scrape: require("../Companies/leapfrog").scrapeLeapFrog },
+    { name: "Cedargate", scrape: require("../Companies/cedargate").scrapeCedargate },
   // { name: "LISNepal", scrape: require("../Companies/lisnepal").scrapeLISNepal },
   // { name: "SoftBenz", scrape: require("../Companies/softbenz").scrapeSoftBenz },
   // {
@@ -76,6 +77,10 @@ const scrapingInsideFunctions = [
     {
     name: "LeapFrog",
     scrape: require("../Companies/inside/leapfrog").scrapeLeapFrogJobDetails,
+  },
+   {
+    name: "Cedargate",
+    scrape: require("../Companies/inside/cedargate").scrapeInsideCedargate,
   },
 ];
 router.get("/", async (req, res) => {
