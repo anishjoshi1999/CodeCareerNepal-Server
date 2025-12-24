@@ -1,226 +1,239 @@
 const express = require("express");
 const router = express.Router();
+
 const { storeIntoDatabase } = require("../utils/store");
 const ScrapeState = require("../Models/scrapeState");
 const Company = require("../Models/Company");
 
-// Full scraping functions list
-const scrapingFunctions = [
-  // // { name: "Cotiviti", scrape: require("../Companies/cotiviti").scrapeCotiviti },
+/* -------------------- SCRAPER REGISTRY -------------------- */
+
+const SCRAPERS = [
   {
     name: "FuseMachine",
-    scrape: require("../Companies/fusemachine").scrapeFuseMachine,
-  },
-  { name: "EbPearls", scrape: require("../Companies/ebperl").scrapeEbPearls },
-  { name: "Verisk", scrape: require("../Companies/verisk").scrapeVerisk },
-  { name: "LeapFrog", scrape: require("../Companies/leapfrog").scrapeLeapFrog },
-    { name: "Cedargate", scrape: require("../Companies/cedargate").scrapeCedargate },
-  // { name: "LISNepal", scrape: require("../Companies/lisnepal").scrapeLISNepal },
-  // { name: "SoftBenz", scrape: require("../Companies/softbenz").scrapeSoftBenz },
-  // {
-  //   name: "Cedargate",
-  //   scrape: require("../Companies/cedargate").scrapeCedargate,
-  // },
-  // {
-  //   name: "LogPointNepal",
-  //   scrape: require("../Companies/logpoint").scrapeLogPoint,
-  // },
-  // {
-  //   name: "InfoDevelopers",
-  //   scrape: require("../Companies/infodev").scrapeInfoDev,
-  // },
-  // { name: "Ekbana", scrape: require("../Companies/ekbana").scrapeEkbana },
-  // // { name: "Deerhold", scrape: require("../Companies/deerhold").scrapeDeerhold },
-  // { name: "Asterdio", scrape: require("../Companies/asterdio").scrapeAsterdio },
-  // { name: "Amnil", scrape: require("../Companies/amnil").scrapeAmnilTech },
-  // // {
-  // //   name: "BajiraTechnolgoies",
-  // //   scrape: require("../Companies/bajiratechnologies").scrapeBajraTechnologies,
-  // // },
-  // { name: "Clusus", scrape: require("../Companies/clusus").scrapeClusus },
-  // {
-  //   name: "CodePixelzMedia",
-  //   scrape: require("../Companies/codepixelzmedia").scrapeCodePixelzMedia,
-  // },
-  // {
-  //   name: "ComplianceQuest",
-  //   scrape: require("../Companies/compliancequest").scrapeComplianceQuest,
-  // },
-  // {
-  //   name: "MegaBitNepalDocsumo",
-  //   scrape: require("../Companies/Docsumo").scrapeMegaBitNepal,
-  // },
-  // {
-  //   name: "F1SoftGroup",
-  //   scrape: require("../Companies/f1soft").scrapeF1Soft,
-  // },
-  //   {
-  //   name: "UBASolutions",
-  //   scrape: require("../Companies/ubaSolutions").scrapeUBASolutions,
-  // },
-];
-// Full scraping inside functions list
-const scrapingInsideFunctions = [
-  {
-    name: "FuseMachine",
-    scrape: require("../Companies/inside/fusemachine")
-      .scrapeFuseMachineJobDetails,
+    scrape: () => require("../Companies/fusemachine").scrapeFuseMachine(),
   },
   {
     name: "EbPearls",
-    scrape: require("../Companies/inside/ebperl").scrapeEbPearlsJob,
+    scrape: () => require("../Companies/ebperl").scrapeEbPearls(),
   },
   {
     name: "Verisk",
-    scrape: require("../Companies/inside/verisk").scrapeInsideVerisk,
+    scrape: () => require("../Companies/verisk").scrapeVerisk(),
   },
-    {
+  {
     name: "LeapFrog",
-    scrape: require("../Companies/inside/leapfrog").scrapeLeapFrogJobDetails,
+    scrape: () => require("../Companies/leapfrog").scrapeLeapFrog(),
   },
-   {
+  {
     name: "Cedargate",
-    scrape: require("../Companies/inside/cedargate").scrapeInsideCedargate,
+    scrape: () => require("../Companies/cedargate").scrapeCedargate(),
   },
 ];
-router.get("/", async (req, res) => {
+
+const INSIDE_SCRAPERS = {
+  fusemachine: require("../Companies/inside/fusemachine")
+    .scrapeFuseMachineJobDetails,
+  ebpearls: require("../Companies/inside/ebperl").scrapeEbPearlsJob,
+  verisk: require("../Companies/inside/verisk").scrapeInsideVerisk,
+  leapfrog: require("../Companies/inside/leapfrog").scrapeLeapFrogJobDetails,
+  cedargate: require("../Companies/inside/cedargate").scrapeInsideCedargate,
+};
+
+/* -------------------- HELPERS -------------------- */
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+async function retryScrape(fn, url, retries = 3, delay = 3000) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const result = await fn(url);
+      if (result) return result;
+    } catch (_) {}
+
+    if (i < retries - 1) await sleep(delay);
+  }
+  return null;
+}
+
+const findCompanyScraper = (name) =>
+  SCRAPERS.find((c) => c.name.toLowerCase() === name.toLowerCase());
+
+/* -------------------- ROUTES -------------------- */
+
+/**
+ * Sequential scrape (state-based)
+ */
+router.get("/", async (_req, res) => {
+  console.log("────────────────────────────────────────");
+  console.log("🚀 SCRAPE ROUTE STARTED");
+  console.log("🕒 Time:", new Date().toISOString());
+
   try {
-    // Retrieve the current index from the database
+    /* ---------------- STATE ---------------- */
+    console.log("📌 Fetching scrape state...");
     const state = await ScrapeState.findOne();
-    console.log(state);
-    const currentScrapeIndex = state ? state.currentIndex : 0;
+    const index = state?.currentIndex ?? 0;
 
-    if (currentScrapeIndex < scrapingFunctions.length) {
-      const company = scrapingFunctions[currentScrapeIndex];
-      let temp = await company.scrape();
-      console.log(temp);
-      await storeIntoDatabase(temp);
+    console.log(`📍 Current scrape index: ${index}`);
 
-      console.log(`Scraping completed for ${company.name}`);
+    if (index >= SCRAPERS.length) {
+      console.log("🎉 All companies already scraped");
+      console.log("🧹 Resetting scrape state...");
+      await ScrapeState.deleteOne();
 
-      if (scrapingFunctions.length !== currentScrapeIndex + 1) {
-        // Update the index in the database
-        await ScrapeState.updateOne(
-          {},
-          { currentIndex: currentScrapeIndex + 1, updatedAt: new Date() }, // Update updatedAt field
-          { upsert: true }
-        );
-      } else {
-        await ScrapeState.deleteOne();
-        console.log("Scrape State Reset");
+      return res.json({ message: "✅ All companies fully scraped" });
+    }
+
+    /* ---------------- COMPANY ---------------- */
+    const companyScraper = SCRAPERS[index];
+    console.log(`🏢 Target company: ${companyScraper.name}`);
+
+    /* ---------------- COMPANY SCRAPE ---------------- */
+    console.log("🔍 Starting company job list scrape...");
+    const jobsData = await companyScraper.scrape();
+
+    console.log(
+      `📄 Company scrape completed. Jobs found: ${
+        jobsData?.totalJobs?.length ?? "unknown"
+      }`
+    );
+
+    console.log("📦 Storing company jobs into database...");
+    await storeIntoDatabase(jobsData);
+    console.log("✅ Company jobs stored successfully");
+
+    /* ---------------- FETCH COMPANY FROM DB ---------------- */
+    console.log("🔄 Fetching stored company from database...");
+    const company = await Company.findOne({
+      companyName: companyScraper.name,
+    });
+
+    if (!company) {
+      console.error("❌ Company NOT found after storing!");
+      throw new Error(`Company not found: ${companyScraper.name}`);
+    }
+
+    console.log(
+      `📊 Total jobs in DB for ${company.companyName}: ${company.totalJobs.length}`
+    );
+
+    /* ---------------- INSIDE JOB SCRAPING ---------------- */
+    console.log("🧵 Starting inside job scraping...");
+
+    let scraped = 0;
+    let skipped = 0;
+    let failed = 0;
+
+    for (const [i, job] of company.totalJobs.entries()) {
+      console.log(
+        `➡️ [${i + 1}/${company.totalJobs.length}] Job: ${job.jobName}`
+      );
+
+      if (job.jobDetails) {
+        console.log("⚠️ Job already scraped → skipping");
+        skipped++;
+        continue;
       }
 
-      // Redirect to the same endpoint to trigger the next scraping request
-      res.redirect("/");
-    } else {
-      console.log(`Scraping completed for all the IT Companies`);
+      console.log(`🌐 Scraping job URL: ${job.jobUrl}`);
+      const details = await retryScrape(companyScraper.inside, job.jobUrl);
 
-      // Reset the index to 0 after scraping all companies
-      await ScrapeState.updateOne({}, { currentIndex: 0 }, { upsert: true });
+      if (!details) {
+        console.log("❌ Failed to scrape job → skipped");
+        failed++;
+        continue;
+      }
 
-      res.redirect("/");
+      console.log("💾 Saving job details to database...");
+      await Company.updateOne(
+        { companyName: company.companyName, "totalJobs.jobUrl": job.jobUrl },
+        { $set: { "totalJobs.$.jobDetails": details } }
+      );
+
+      console.log("✅ Job details saved");
+      scraped++;
     }
-  } catch (error) {
-    console.error("Error:", error);
-    res
-      .status(500)
-      .json({ error: "An error occurred while scraping companies." });
+
+    console.log("📈 Inside job scrape summary:");
+    console.log(`   ✅ Scraped: ${scraped}`);
+    console.log(`   ⚠️ Skipped: ${skipped}`);
+    console.log(`   ❌ Failed: ${failed}`);
+
+    /* ---------------- STATE UPDATE ---------------- */
+    console.log("➡️ Moving to next company...");
+    await ScrapeState.updateOne(
+      {},
+      { currentIndex: index + 1, updatedAt: new Date() },
+      { upsert: true }
+    );
+
+    console.log("✅ Scrape state updated");
+    console.log(`🏁 Finished scraping ${companyScraper.name}`);
+    console.log("────────────────────────────────────────");
+
+    res.json({
+      message: `✅ Fully scraped ${companyScraper.name}`,
+      stats: { scraped, skipped, failed },
+    });
+  } catch (err) {
+    console.error("🔥 SCRAPE ROUTE FAILED");
+    console.error(err);
+
+    res.status(500).json({
+      error: err.message,
+      time: new Date().toISOString(),
+    });
   }
 });
 
+/**
+ * Scrape single company
+ */
 router.get("/:name", async (req, res) => {
   try {
-    const { name } = req.params;
-    console.log(`Scraping request for company: ${name}`);
-
-    const company = scrapingFunctions.find(
-      (c) => c.name.toLowerCase() === name.toLowerCase()
-    );
-    console.log(company);
-    if (!company) {
-      return res.status(404).json({ error: `Company '${name}' not found.` });
-    }
+    const company = findCompanyScraper(req.params.name);
+    if (!company) return res.status(404).json({ error: "Company not found" });
 
     const data = await company.scrape();
     await storeIntoDatabase(data);
 
-    console.log(`✅ Scraping completed for ${company.name}`);
-    res.json({ message: `Scraping completed for ${company.name}`, data });
-  } catch (error) {
-    console.error("Error:", error);
-    res.status(500).json({ error: "Error occurred while scraping by name." });
+    res.json({ message: `Scraped ${company.name}`, data });
+  } catch {
+    res.status(500).json({ error: "Scraping failed" });
   }
 });
+
+/**
+ * Scrape inside job details
+ */
 router.get("/:name/inside", async (req, res) => {
   try {
-    const { name } = req.params;
-    console.log(`Scraping inside each job for company: ${name}`);
+    const name = req.params.name.toLowerCase();
+    const scrapeJob = INSIDE_SCRAPERS[name];
 
-    const companyData = await Company.findOne({ companyName: name });
-    if (!companyData) {
-      return res.status(404).json({ error: `Company '${name}' not found.` });
+    if (!scrapeJob) {
+      return res.status(404).json({ error: "Company not supported" });
     }
 
-    const company = scrapingInsideFunctions.find(
-      (c) => c.name.toLowerCase() === name.toLowerCase()
-    );
-    console.log("Hello", company);
+    const company = await Company.findOne({ companyName: req.params.name });
     if (!company) {
-      return res.status(404).json({ error: `Company '${name}' not found.` });
+      return res.status(404).json({ error: "Company not found" });
     }
 
-    // Sequential loop (WAIT for each scrape)
-    for (const job of companyData.totalJobs) {
-      console.log(`Scraping job: ${job.jobName} at ${job.jobUrl}`);
-
-      const jobDetails = await retryScrape(company.scrape, job.jobUrl);
-
-      if (!jobDetails) {
-        console.log(`⚠ Skipping job (failed to scrape): ${job.jobName}`);
-        continue;
-      }
-
-      console.log(`✔ Scraped: ${job.jobName}`);
+    for (const job of company.totalJobs) {
+      const details = await retryScrape(scrapeJob, job.jobUrl);
+      if (!details) continue;
 
       await Company.updateOne(
-        { companyName: name, "totalJobs.jobUrl": job.jobUrl },
-        { $set: { "totalJobs.$.jobDetails": jobDetails } }
+        { companyName: req.params.name, "totalJobs.jobUrl": job.jobUrl },
+        { $set: { "totalJobs.$.jobDetails": details } }
       );
     }
 
-    console.log("🎉 All inside job scrapes completed!");
-
-    return res.json({
-      message: `Inside job scraping completed for ${name}`,
-    });
-  } catch (error) {
-    console.error("Error:", error);
-    return res
-      .status(500)
-      .json({ error: "Error occurred while scraping jobs." });
+    res.json({ message: "✅ Inside job scraping completed" });
+  } catch {
+    res.status(500).json({ error: "Inside scraping failed" });
   }
 });
-
-// Helper function for retry with delay
-async function retryScrape(scrapeFn, url, retries = 3, delay = 3000) {
-  for (let i = 1; i <= retries; i++) {
-    try {
-      console.log(`Attempt ${i} scraping: ${url}`);
-      const result = await scrapeFn(url);
-
-      if (result) return result; // success
-    } catch (err) {
-      console.log(`❌ Error on attempt ${i} for ${url}`, err);
-    }
-
-    if (i < retries) {
-      console.log(`⏳ Waiting ${delay}ms before retry...`);
-      await new Promise((resolve) => setTimeout(resolve, delay));
-    }
-  }
-
-  console.log(`❌ Failed after ${retries} retries: ${url}`);
-  return null;
-}
 
 module.exports = router;

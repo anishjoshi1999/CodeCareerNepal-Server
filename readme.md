@@ -1,153 +1,120 @@
-# CodeCareerNepal-Server
+# KaamKhoj API (CodeCareerNepal-Server)
 
-This repository contains the source code for CodeCareerNepal, a job portal application. The application is built using Node.js, Express, MongoDB, and Puppeteer for web scraping.
+**KaamKhoj** is a small job-scraping API that collects job listings from several Nepal-based companies, stores them in MongoDB, and supports scraping detailed job pages on demand.
 
-## Table of Contents
+---
 
-- [MongoDB Schemas](#mongodb-schemas)
-- [API Routes](#api-routes)
-- [Scraping Routes](#scraping-routes)
-- [Utility Functions](#utility-functions)
-- [Docker Configuration](#docker-configuration)
-- [Environment Configuration](#environment-configuration)
-- [Application Setup](#application-setup)
-- [Usage](#usage)
+## 🔧 Features
 
-## MongoDB Schemas
+- Scrapes job listings from a registry of company scrapers ✅
+- Stores companies and job listings in MongoDB 🗄️
+- Supports fetching detailed job descriptions ("inside" scraping) for each job 🌐
+- Sequential stateful scraping with resume support using `ScrapeState` 🔁
+- Simple Express-based API with CORS enabled 🚀
 
-### Job Schema (`jobSchema`)
+---
 
-- `jobName`: String, required.
-- `jobUrl`: String, required.
-- `updatedAt`: Date, default: current date.
+## 🧩 Project Structure
 
-### Company Schema (`companySchema`)
+- `index.js` — App entry point and MongoDB connection
+- `Routes/scrapeRoute.js` — Main scraping routes and orchestration
+- `Companies/` — Company-specific scrapers (list pages)
+- `Companies/inside/` — Scrapers for individual job detail pages
+- `Models/Company.js` — Mongoose model for company + jobs
+- `Models/scrapeState.js` — Tracks the current scraper index (resume progress)
+- `utils/store.js` — Helper to persist scraped jobs into the DB
+- `Dockerfile` — Containerization config
 
-- `companyName`: String, required.
-- `totalJobs`: Array of `jobSchema`, required.
-- `createdAt`: Date, default: current date.
-- `updatedAt`: Date, default: current date.
+---
 
-### Scrape State Schema (`scrapeStateSchema`)
+## ⚙️ Requirements
 
-- `currentIndex`: Number, default: 0.
-- `updatedAt`: Date, default: current date.
+- Node.js (v16+ recommended)
+- npm
+- MongoDB Atlas (or another MongoDB instance)
 
-## API Routes
+---
 
-### GET `/`
+## 🚀 Setup & Run
 
-- Returns a paginated list of all company job listings.
+1. Install dependencies:
 
-### GET `/intern`
+```bash
+npm install
+```
 
-- Fetches and returns intern jobs using the `getInternJobs` utility function.
+2. Create a `.env` file (or set environment variables) with at least:
 
-### GET `/:id`
+```
+MONGODB_URI=<your-mongodb-connection-string>
+PORT=3000 # optional
+```
 
-- Returns job listings for a specific company based on the provided company ID.
+3. Start the server:
 
-## Scraping Routes
+```bash
+npm start
+# or
+node index.js
+```
 
-### GET `/scrape`
+Server will run on `http://localhost:3000` (or the configured `PORT`).
 
-- Initiates web scraping for multiple companies using predefined scraping functions.
-- Scraping functions are defined for companies such as Cotiviti, FuseMachine, LeapFrog, and others.
+---
 
-## Utility Functions
+## 🔍 API Endpoints
 
-### `getInternJobs.js`
+- GET `/scrape` — Run the sequential, stateful scrape process for the current company in the registry. Progress persists in `ScrapeState`.
 
-- Filters and projects relevant intern jobs from the MongoDB collection.
+  - Success response: `{ message: '✅ Fully scraped <CompanyName>', stats: { scraped, skipped, failed } }`
 
-### `store.js`
+- GET `/scrape/:name` — Scrape a single company immediately (one-off). Example: `/scrape/fusemachine`
 
-- Stores job data into the MongoDB collection.
+- GET `/scrape/:name/inside` — Scrape detailed job pages for an already-stored company. Example: `/scrape/fusemachine/inside`
 
-## Docker Configuration
+Notes:
+- The route handlers log detailed progress to the console and return JSON summaries on completion.
+- The route uses retry logic for inside scraping to improve reliability.
 
-The application is containerized using Docker.
+---
 
-- Base image: Puppeteer (version 21.6.1).
-- Installs Node.js dependencies and sets the entry point to `index.js`.
+## 🧪 Usage Examples
 
-## Environment Configuration
+Run the sequential scraper:
 
-- Environment variables are loaded using the `dotenv` package.
-- Key variables include `MONGODB_URI` for MongoDB connection and `PORT` for the application.
+```bash
+curl http://localhost:3000/scrape
+```
 
-## Application Setup
+Scrape a single company:
 
-1.  Clone the repository: `git clone https://github.com/anishjoshi1999/CodeCareerNepal.git`
-2.  Install dependencies: `npm install`
-3.  Set up environment variables: Create a `.env` file with required configurations.
-4.  Start the application: `npm start` or `npm run dev` for development.
+```bash
+curl http://localhost:3000/scrape/leapfrog
+```
 
-## Usage
+Scrape inside pages for a company:
 
-- Access the job portal API through the defined routes.
-- Initiate web scraping for new job listings using the `/scrape` route.
+```bash
+curl http://localhost:3000/scrape/verisk/inside
+```
 
-Note: Ensure proper error handling, logging, and security measures are implemented before deploying the application in a production environment.
+---
 
-# Contribution Guidelines
+## 🛠 Development Tips
 
-Thank you for considering contributing to our project! We appreciate the community's involvement in making this project better.
+- Company scrapers are defined in `Routes/scrapeRoute.js` (the `SCRAPERS` array). Add a new company by adding a scraper module and registering it.
+- Inside scrapers (detailed job pages) live under `Companies/inside/` and are referenced by the `INSIDE_SCRAPERS` map.
 
-## Ways to Contribute
+---
 
-There are several ways you can contribute to this project:
+## 🧾 License & Contribution
 
-1. Reporting Bugs: If you find a bug, please open an issue. Provide a clear and detailed description, including steps to reproduce the issue.
+- This project includes a `LICENSE.md`. Feel free to open issues or PRs for improvements.
 
-2. Suggesting Enhancements: Have an idea to improve the project? Feel free to open an issue with your enhancement suggestion, and we can discuss it.
+---
 
-3. Fixing Issues: Want to tackle an existing issue or contribute a new feature? Fork the repository, create a new branch, make your changes, and submit a pull request.
+> **Tip:** If you plan to run this in a container, make sure to supply MongoDB connection information to the container via environment variables, and consider using the provided `Dockerfile`.
 
-## How to Contribute
+---
 
-To contribute to this project, follow these steps:
-
-1. Fork the repository to your GitHub account.
-
-2. Clone the forked repository to your local machine:
-
-   ```bash
-   git clone https://github.com/anishjoshi1999/CodeCareerNepal-Server.git
-   ```
-
-3. Create a new branch for your contribution:
-
-   ```bash
-   git checkout -b feature/your-feature
-   ```
-
-4. Make your changes and test them thoroughly.
-
-5. Commit your changes:
-
-   ```bash
-   git commit -m "Your meaningful commit message"
-   ```
-
-6. Push your changes to your fork:
-
-   ```bash
-   git push origin feature/your-feature
-   ```
-
-7. Submit a pull request to the 'dev' branch of this repository, ensuring that your changes are clearly described and any relevant issues are referenced.
-
-## Code Style and Guidelines
-
-Follow the established coding style and guidelines for this project. If there are specific conventions to adhere to, they will be mentioned here. Ensure that your code passes any existing tests.
-
-## Code of Conduct
-
-Please adhere to our [Code of Conduct](CODE_OF_CONDUCT.md). We aim to foster a welcoming and inclusive community.
-
-## Licensing
-
-By contributing to this project, you agree that your contributions will be licensed under the project's [LICENSE](LICENSE.md).
-
-Thank you for your contribution!
+If you'd like, I can also add an example `.env.example`, Postman collection, or more detailed docs for contributing — tell me which you'd prefer. ✨

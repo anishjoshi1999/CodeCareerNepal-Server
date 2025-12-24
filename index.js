@@ -10,7 +10,6 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 // Importing Routes
 const scrapeRoute = require("./Routes/scrapeRoute");
-const apiRoute = require("./Routes/apiRoute");
 
 // Connection to Database
 
@@ -33,8 +32,7 @@ mongoose
 
 // Routes
 app.get("/", (req, res) => {
-  res.send("Welcome to CodeCareerNepal");
+  res.send("Welcome to KaamKhoj API");
 });
 
 app.use("/scrape", scrapeRoute);
-app.use("/api", apiRoute);
