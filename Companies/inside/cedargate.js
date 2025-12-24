@@ -14,31 +14,71 @@ function stripHtml(html) {
     .replace(/\s+/g, " ")
     .trim();
 }
-
-/**
- * Fetch job details from ADP using ExternalJobID
- */
-async function scrapeInsideCedargate(externalJobId) {
+function extractJobId(externalJobId) {
   if (!externalJobId) return null;
 
-  const jobUrl = `https://workforcenow.adp.com/mascsr/default/mdf/recruitment/recruitment.html?cid=00938235-a9f7-41c8-88da-16d4f27e21c1&ccId=9200974512588_2&lang=en_US&selectedMenuKey=CareerCenter&jobId=${externalJobId}`;
+  // If already numeric, return as-is
+  if (/^\d+$/.test(externalJobId)) {
+    return externalJobId;
+  }
 
   try {
-    const res = await fetch(jobUrl);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const url = new URL(externalJobId);
+    return url.searchParams.get("jobId");
+  } catch {
+    return null;
+  }
+}
 
-    const html = await res.text();
+/**
+ * Fetch job details from ADP (Cedargate)
+ */
+async function scrapeInsideCedargate(externalJobId) {
+  console.log("🔍 Fetching Cedargate job via ADP API...");
+  console.log("Raw ExternalJobID:", externalJobId);
 
-    // Try to extract description from meta tag
-    const metaMatch = html.match(/<meta name="description" content="([^"]+)"/i);
-    const jobDescription = metaMatch ? metaMatch[1] : null;
+  const jobId = extractJobId(externalJobId);
+  console.log("Parsed jobId:", jobId);
+
+  if (!jobId) {
+    console.warn("❌ Invalid or missing jobId");
+    return null;
+  }
+
+  const apiUrl = `https://workforcenow.adp.com/mascsr/default/careercenter/public/events/staffing/v1/job-requisitions/${jobId}?cid=00938235-a9f7-41c8-88da-16d4f27e21c1&ccId=9200974512588_2&lang=en_US&locale=en_US&timeStamp=${Date.now()}`;
+
+  try {
+    const res = await fetch(apiUrl, {
+      method: "GET",
+      headers: {
+        accept: "*/*",
+        "content-type": "application/json",
+        locale: "en_US",
+        "x-requested-with": "XMLHttpRequest",
+        referer: `https://workforcenow.adp.com/mascsr/default/mdf/recruitment/recruitment.html?jobId=${jobId}`,
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}`);
+    }
+
+    const data = await res.json();
+    const rawDescription = data?.requisitionDescription;
+
+    if (!rawDescription) {
+      console.warn("⚠️ No requisitionDescription found");
+      return null;
+    }
+
+    console.log("✅ Cedargate API fetch successful");
 
     return {
-      jobUrl,
-      jobDescriptionText: stripHtml(jobDescription),
+      jobUrl: `https://workforcenow.adp.com/mascsr/default/mdf/recruitment/recruitment.html?jobId=${jobId}`,
+      jobDescriptionText: stripHtml(rawDescription),
     };
   } catch (error) {
-    console.error("❌ Cedargate scrape failed:", error.message);
+    console.error("❌ Cedargate API fetch failed:", error.message);
     return null;
   }
 }
