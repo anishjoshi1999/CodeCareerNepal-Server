@@ -29,7 +29,21 @@ function extractJobId(externalJobId) {
     return null;
   }
 }
+function extractJobccId(externalJobId) {
+  if (!externalJobId) return null;
 
+  // If already numeric, return as-is
+  if (/^\d+$/.test(externalJobId)) {
+    return externalJobId;
+  }
+
+  try {
+    const url = new URL(externalJobId);
+    return url.searchParams.get("ccId");
+  } catch {
+    return null;
+  }
+}
 /**
  * Fetch job details from ADP (Cedargate)
  */
@@ -38,15 +52,15 @@ async function scrapeInsideCedargate(externalJobId) {
   console.log("Raw ExternalJobID:", externalJobId);
 
   const jobId = extractJobId(externalJobId);
+  const ccId = extractJobccId(externalJobId);
   console.log("Parsed jobId:", jobId);
+  console.log("Parsed ccId:", ccId);
 
   if (!jobId) {
     console.warn("❌ Invalid or missing jobId");
     return null;
   }
-
-  const apiUrl = `https://workforcenow.adp.com/mascsr/default/careercenter/public/events/staffing/v1/job-requisitions/${jobId}?cid=00938235-a9f7-41c8-88da-16d4f27e21c1&ccId=9200974512588_2&lang=en_US&locale=en_US&timeStamp=${Date.now()}`;
-
+  const apiUrl = `https://workforcenow.adp.com/mascsr/default/careercenter/public/events/staffing/v1/job-requisitions/${jobId}?cid=00938235-a9f7-41c8-88da-16d4f27e21c1&timeStamp=1767028826229&ccId=${ccId}&lang=en_US&ccId=${ccId}&locale=en_US`;
   try {
     const res = await fetch(apiUrl, {
       method: "GET",

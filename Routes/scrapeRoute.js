@@ -8,22 +8,32 @@ const Job = require("../Models/Job");
 const SCRAPERS = [
   {
     name: "FuseMachine",
+    company_link: "https://fusemachines.com",
+    company_img_link: "https://newbusinessage.prixacdn.net/uploads/2025/10/fusemachines.jpg",
     scrape: () => require("../Companies/fusemachine").scrapeFuseMachine(),
   },
   {
     name: "EbPearls",
+    company_link: "https://ebpearls.com.au",
+    company_img_link: "https://ebpearls.com.au/hubfs/logo-ebpearls-new-4.png",
     scrape: () => require("../Companies/ebperl").scrapeEbPearls(),
   },
   {
     name: "Verisk",
+    company_link: "https://www.verisk.com",
+    company_img_link: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQP8nYOgAsMsakbS5Rzql4ImpRbqJCgUeRuEg&s",
     scrape: () => require("../Companies/verisk").scrapeVerisk(),
   },
   {
     name: "LeapFrog",
+    company_link: "https://www.lftechnology.com",
+    company_img_link: "https://miro.medium.com/0*87NtEwD_UNbd84HB.jpg",
     scrape: () => require("../Companies/leapfrog").scrapeLeapFrog(),
   },
   {
     name: "Cedargate",
+    company_link: "https://www.cedargate.com",
+    company_img_link: "https://www.cedargate.com/wp-content/uploads/2022/01/cedargate-yoast-2022.jpg",
     scrape: () => require("../Companies/cedargate").scrapeCedargate(),
   },
 ];
@@ -86,6 +96,8 @@ router.get("/:name", async (req, res) => {
       const normalized = normalizeJob({
         ...rawJob,
         company: scrapedResult.companyName,
+        company_link: companyScraper.company_link,
+        company_img_link: companyScraper.company_img_link,
         job_index: i,
       });
 
@@ -137,7 +149,7 @@ router.get("/:name/inside", async (req, res) => {
       if (job.description) continue;
 
       const details = await retryScrape(scrapeJob, job.link);
-      console.log(details);
+      // console.log(details);
       if (!details) continue;
 
       await Job.updateOne(
